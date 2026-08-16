@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Life Simulator — Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:wght@600;700;900&display=swap');
+
+  :root{
+    --sky-top:#22314f;
+    --sky-mid:#e8894a;
+    --sky-horizon:#ffd98a;
+    --field-far:#4f6d2d;
+    --field-near:#6b8f3f;
+    --field-row:#3f5a24;
+    --barn-red:#a5392a;
+    --barn-red-dark:#7e2a1f;
+    --cream:#f2ecd8;
+    --gold:#d9b46a;
+    --leaf:#7fae2e;
+    --panel:rgba(18,20,14,0.55);
+    --panel-strong:rgba(14,16,10,0.72);
+    --panel-border:rgba(255,255,255,0.12);
+    --text:#f5efe0;
+    --text-dim:#cfc7ad;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    width:100%; height:100%;
+    font-family:'Nunito', sans-serif;
+    overflow:hidden;
+    background:#000;
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    height:100vh;
+    min-height:520px;
+    overflow:hidden;
+  }
+
+  /* ---------- BACKGROUND (foto) ---------- */
+  .bg-photo{
+    position:absolute; inset:0;
+    background-image:url('farm-background.jpg');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    transition:transform .2s ease-out;
+  }
+
+  .ground-fade{
+    position:absolute; left:0; right:0; bottom:0; height:14%;
+    background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
+  }
+
+  .vignette{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%);
+    pointer-events:none;
+  }
+
+  /* ---------- UI LAYER ---------- */
+  .ui{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:22px 26px;
+    pointer-events:none;
+  }
+  .ui > *{ pointer-events:auto; }
+
+  .top-row{
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+
+  .logo{
+    display:flex; flex-direction:column;
+    text-transform:uppercase;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,0.45));
+  }
+  .logo .line1{
+    font-family:'Fraunces', serif;
+    font-weight:900;
+    font-size:clamp(28px, 4.4vw, 46px);
+    letter-spacing:2px;
+    color:var(--cream);
+    -webkit-text-stroke:1px rgba(0,0,0,0.15);
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .leaf{ color:var(--leaf); font-size:0.7em; }
+  .logo .line2{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:clamp(12px, 1.6vw, 18px);
+    letter-spacing:8px;
+    color:var(--gold);
+    margin-top:2px;
+  }
+  .logo .rule{
+    width:70%; height:2px;
+    background:linear-gradient(90deg, var(--leaf), transparent);
+    margin-top:4px;
+  }
+
+  .quick-icons{
+    display:flex; gap:12px;
+  }
+  .qicon{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    background:none; border:none; cursor:pointer;
+    color:var(--text);
+    font-family:'Nunito', sans-serif;
+  }
+  .qicon .circle{
+    width:42px; height:42px; border-radius:50%;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+    backdrop-filter:blur(6px);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .qicon:hover .circle{ transform:translateY(-3px); background:var(--panel-strong); }
+  .qicon .label{ font-size:11px; color:var(--text-dim); font-weight:600; }
+  .qicon .label.level{ color:var(--leaf); }
+
+  .mid-row{
+    display:flex; justify-content:space-between; align-items:center; flex:1;
+  }
+
+  .menu{
+    display:flex; flex-direction:column; gap:9px;
+    width:min(300px, 82vw);
+  }
+  .mbtn{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    text-align:left;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:transform .12s ease, background .15s ease, border-color .15s ease;
+  }
+  .mbtn .icon{ font-size:18px; width:22px; text-align:center; }
+  .mbtn .sub{
+    display:block; font-size:11px; font-weight:600; text-transform:none;
+    letter-spacing:0; color:var(--text-dim); margin-top:2px;
+  }
+  .mbtn:hover{ transform:translateX(4px); border-color:rgba(255,255,255,0.3); }
+  .mbtn:active{ transform:translateX(2px) scale(0.99); }
+
+  .mbtn.primary{
+    background:linear-gradient(180deg, #8fc23a, var(--leaf));
+    border-color:rgba(255,255,255,0.25);
+    color:#16260a;
+    box-shadow:0 6px 18px rgba(127,174,46,0.4);
+  }
+  .mbtn.primary .sub{ color:rgba(20,40,10,0.7); }
+  .mbtn.primary:hover{ transform:translateX(4px) scale(1.01); }
+
+  .news-card{
+    width:220px;
+    background:var(--panel-strong);
+    border:1px solid var(--panel-border);
+    border-radius:12px;
+    padding:12px;
+    backdrop-filter:blur(8px);
+    color:var(--text);
+  }
+  .news-card .title{
+    font-size:11px; font-weight:800; letter-spacing:1.5px;
+    color:var(--gold); margin-bottom:2px;
+  }
+  .news-card .desc{ font-size:12px; color:var(--text-dim); margin-bottom:8px; }
+  .news-thumb{
+    width:100%; height:90px; border-radius:8px;
+    background:linear-gradient(135deg, #b04a2e, #6f2f1c);
+    position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .news-thumb::after{
+    content:"🚜";
+    font-size:34px;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+  }
+  .dots{ display:flex; gap:5px; justify-content:center; margin-top:8px; }
+  .dots span{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.3); }
+  .dots span.active{ background:var(--leaf); }
+
+  .bottom-row{
+    display:flex; justify-content:space-between; align-items:flex-end;
+  }
+
+  .weather{
+    display:flex; align-items:center; gap:10px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:10px 14px;
+    backdrop-filter:blur(6px);
+    color:var(--text);
+  }
+  .weather .wicon{ font-size:22px; }
+  .weather .season{ font-size:12px; font-weight:700; }
+  .weather .day{ font-size:11px; color:var(--text-dim); }
+  .weather .divider{ width:1px; height:26px; background:var(--panel-border); margin:0 4px; }
+  .weather .time{ font-size:14px; font-weight:800; }
+  .weather .temp{ font-size:11px; color:var(--text-dim); }
+
+  .social{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .social .label{
+    font-size:10px; letter-spacing:3px; color:var(--text-dim); font-weight:700;
+  }
+  .social .icons{ display:flex; gap:14px; }
+  .social .icons button{
+    background:none; border:none; color:var(--text);
+    font-size:17px; cursor:pointer; opacity:0.85;
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .social .icons button:hover{ opacity:1; transform:translateY(-2px); }
+
+  .version{
+    font-size:11px; color:var(--text-dim);
+    align-self:flex-end;
+  }
+
+  .toast{
+    position:absolute; left:50%; bottom:26px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--panel-strong);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    padding:10px 18px; border-radius:999px;
+    font-size:13px; font-weight:700;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:20;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:720px){
+    .mid-row{ align-items:flex-end; }
+    .news-card{ display:none; }
+    .menu{ width:min(240px, 68vw); }
+    .mbtn{ padding:10px 12px; font-size:12px; }
+    .logo .line1{ font-size:26px; }
+    .quick-icons{ gap:6px; }
+    .qicon .circle{ width:34px; height:34px; font-size:14px; }
+    .qicon .label{ font-size:9px; }
+    .weather{ padding:8px 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="bg-photo" id="bgPhoto"></div>
+  <div class="ground-fade"></div>
+  <div class="vignette"></div>
+
+  <div class="ui">
+    <div class="top-row">
+      <div class="logo">
+        <div class="line1"><span>FARM</span><span class="leaf">❧</span><span>LIFE</span></div>
+        <div class="line2">Simulator</div>
+        <div class="rule"></div>
+      </div>
+      <div class="quick-icons">
+        <button class="qicon" data-action="Profilo">
+          <span class="circle">👤</span>
+          <span class="label">PlayerOne</span>
+          <span class="label level">Livello 24</span>
+        </button>
+        <button class="qicon" data-action="Notizie">
+          <span class="circle">📰</span>
+          <span class="label">Notizie</span>
+        </button>
+        <button class="qicon" data-action="DLC">
+          <span class="circle">🧩</span>
+          <span class="label">DLC</span>
+        </button>
+        <button class="qicon" data-action="Social">
+          <span class="circle">👥</span>
+          <span class="label">Social</span>
+        </button>
+        <button class="qicon" data-action="Supporto">
+          <span class="circle">🎧</span>
+          <span class="label">Supporto</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mid-row">
+      <div class="menu">
+        <button class="mbtn primary" data-action="Continua">
+          <span class="icon">▶</span>
+          <span>Continua<span class="sub">La tua fattoria</span></span>
+        </button>
+        <button class="mbtn" data-action="Nuova partita">
+          <span class="icon">＋</span><span>Nuova partita</span>
+        </button>
+        <button class="mbtn" data-action="Carica partita">
+          <span class="icon">⇩</span><span>Carica partita</span>
+        </button>
+        <button class="mbtn" data-action="Multiplayer">
+          <span class="icon">👥</span><span>Multiplayer</span>
+        </button>
+        <button class="mbtn" data-action="Impostazioni">
+          <span class="icon">⚙</span><span>Impostazioni</span>
+        </button>
+        <button class="mbtn" data-action="Crediti">
+          <span class="icon">★</span><span>Crediti</span>
+        </button>
+        <button class="mbtn" data-action="Esci">
+          <span class="icon">⇥</span><span>Esci</span>
+        </button>
+      </div>
+
+      <div class="news-card">
+        <div class="title">NOVITÀ</div>
+        <div class="desc">Nuovi macchinari disponibili!</div>
+        <div class="news-thumb"></div>
+        <div class="dots">
+          <span class="active"></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <div class="weather">
+        <span class="wicon">☀️</span>
+        <div>
+          <div class="season">Primavera</div>
+          <div class="day">Giorno 12</div>
+        </div>
+        <div class="divider"></div>
+        <div>
+          <div class="time">08:15</div>
+          <div class="temp">25°C</div>
+        </div>
+      </div>
+
+      <div class="social">
+        <span class="label">SEGUICI</span>
+        <div class="icons">
+          <button data-action="Discord">🎮</button>
+          <button data-action="Instagram">📷</button>
+          <button data-action="YouTube">▶</button>
+          <button data-action="Facebook">📘</button>
+        </div>
+      </div>
+
+      <span class="version">v1.0.0</span>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const toast = document.getElementById('toast');
+let toastTimer;
+
+const routes = {
+  "Nuova partita": "nuova-partita.html",
+  "Carica partita": "carica-partita.html"
+};
+
+document.querySelectorAll('[data-action]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const action = el.getAttribute('data-action');
+
+    if (routes[action]) {
+      window.location.href = routes[action];
+      return;
+    }
+
+    toast.textContent = action + ' →  (collega qui la tua logica)';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.classList.remove('show'), 1800);
+  });
+});
+</script>
+
+</body>
+</html>

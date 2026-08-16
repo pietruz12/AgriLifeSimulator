@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Life Simulator — Carica Partita</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:wght@600;700;900&display=swap');
+
+  :root{
+    --cream:#f2ecd8;
+    --gold:#d9b46a;
+    --leaf:#7fae2e;
+    --panel:rgba(18,20,14,0.55);
+    --panel-strong:rgba(14,16,10,0.72);
+    --panel-border:rgba(255,255,255,0.12);
+    --text:#f5efe0;
+    --text-dim:#cfc7ad;
+    --empty:rgba(255,255,255,0.06);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    width:100%; height:100%;
+    font-family:'Nunito', sans-serif;
+    overflow:hidden;
+    background:#000;
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    height:100vh;
+    min-height:520px;
+    overflow:hidden;
+  }
+
+  .bg-photo{
+    position:absolute; inset:0;
+    background-image:url('backgroundwinter.png');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    filter:brightness(0.55) saturate(0.9);
+  }
+
+  .vignette{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%);
+    pointer-events:none;
+  }
+
+  .ui{
+    position:relative;
+    height:100%;
+    display:flex; flex-direction:column;
+    padding:22px 26px;
+  }
+
+  /* ---------- HEADER ---------- */
+  .header{
+    display:flex; align-items:center; gap:16px;
+    margin-bottom:6px;
+  }
+  .back-btn{
+    display:flex; align-items:center; justify-content:center;
+    width:42px; height:42px; border-radius:50%;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-size:18px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .back-btn:hover{ transform:translateX(-3px); background:var(--panel-strong); }
+
+  .title-block .eyebrow{
+    font-size:11px; letter-spacing:4px; color:var(--gold);
+    font-weight:800; text-transform:uppercase;
+  }
+  .title-block h1{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:clamp(22px, 3vw, 30px);
+    color:var(--cream);
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+
+  /* ---------- CAROUSEL ---------- */
+  .carousel-wrap{
+    position:relative;
+    flex:1;
+    display:flex;
+    align-items:center;
+    min-height:0;
+  }
+
+  .nav-arrow{
+    flex-shrink:0;
+    width:52px; height:52px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--panel-strong);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-size:22px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:transform .15s ease, background .15s ease, opacity .15s ease;
+    z-index:5;
+  }
+  .nav-arrow:hover{ background:rgba(127,174,46,0.35); }
+  .nav-arrow:active{ transform:scale(0.94); }
+  .nav-arrow.disabled{ opacity:0.25; pointer-events:none; }
+  .nav-arrow.left{ margin-right:14px; }
+  .nav-arrow.right{ margin-left:14px; }
+
+  .track-viewport{
+    flex:1;
+    overflow:hidden;
+    min-width:0;
+  }
+
+  .track{
+    display:flex;
+    gap:18px;
+    transition:transform .38s cubic-bezier(.22,.9,.32,1);
+    will-change:transform;
+    padding:6px 2px 18px;
+  }
+
+  .save-card{
+    flex:0 0 auto;
+    width:300px;
+    border-radius:16px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    backdrop-filter:blur(8px);
+    padding:20px;
+    color:var(--text);
+    cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, background .18s ease;
+    display:flex; flex-direction:column;
+  }
+  .save-card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(255,255,255,0.3);
+    background:var(--panel-strong);
+  }
+
+  .save-thumb{
+    width:100%; height:160px; border-radius:11px;
+    margin-bottom:16px;
+    background:linear-gradient(135deg, #6b8f3f, #3f5a24);
+    display:flex; align-items:center; justify-content:center;
+    font-size:46px;
+    position:relative;
+    overflow:hidden;
+  }
+  .save-card.empty .save-thumb{
+    background:var(--empty);
+  }
+
+  .slot-label{
+    font-size:11px; font-weight:800; letter-spacing:2px;
+    color:var(--gold); text-transform:uppercase; margin-bottom:6px;
+  }
+  .farm-name{
+    font-family:'Fraunces', serif;
+    font-weight:700; font-size:20px;
+    margin-bottom:8px;
+    color:var(--cream);
+  }
+  .save-meta{
+    display:flex; flex-wrap:wrap; gap:8px 12px;
+    font-size:13px; color:var(--text-dim); margin-bottom:14px;
+  }
+  .save-meta span{ display:flex; align-items:center; gap:4px; }
+
+  .save-actions{
+    margin-top:auto;
+    display:flex; gap:10px;
+  }
+  .save-actions button{
+    flex:1;
+    padding:11px 0;
+    border-radius:9px;
+    border:1px solid var(--panel-border);
+    background:rgba(0,0,0,0.25);
+    color:var(--text);
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .save-actions button:hover{ background:rgba(255,255,255,0.1); }
+  .save-actions button.primary{
+    background:linear-gradient(180deg, #8fc23a, var(--leaf));
+    color:#16260a;
+    border-color:rgba(255,255,255,0.25);
+  }
+  .save-actions button.primary:hover{ filter:brightness(1.06); }
+  .save-actions button.danger:hover{ background:rgba(165,57,42,0.55); }
+
+  .save-card.empty{
+    align-items:center; justify-content:center;
+    text-align:center;
+  }
+  .save-card.empty .save-thumb::after{ content:"＋"; font-size:30px; color:var(--text-dim); }
+  .save-card.empty .farm-name{ color:var(--text-dim); font-weight:600; font-size:13px; }
+
+  /* ---------- DOTS / FOOTER ---------- */
+  .footer-row{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-top:4px;
+  }
+  .footer-row .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,0.25);
+    transition:background .2s ease, transform .2s ease;
+  }
+  .footer-row .dot.active{ background:var(--leaf); transform:scale(1.3); }
+
+  .hint{
+    text-align:center;
+    font-size:11px; color:var(--text-dim);
+    margin-top:10px;
+  }
+
+  @media (max-width:720px){
+    .nav-arrow{ width:40px; height:40px; font-size:18px; }
+    .save-card{ width:170px; }
+    .save-thumb{ height:90px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="bg-photo"></div>
+  <div class="vignette"></div>
+
+  <div class="ui">
+    <div class="header">
+      <button class="back-btn" id="backBtn" title="Torna al menu">←</button>
+      <div class="title-block">
+        <div class="eyebrow">Farm Life Simulator</div>
+        <h1>Carica Partita</h1>
+      </div>
+    </div>
+
+    <div class="carousel-wrap">
+      <button class="nav-arrow left" id="prevBtn">‹</button>
+      <div class="track-viewport" id="viewport">
+        <div class="track" id="track"></div>
+      </div>
+      <button class="nav-arrow right" id="nextBtn">›</button>
+    </div>
+
+    <div class="footer-row" id="dots"></div>
+    <div class="hint">Usa le frecce, trascina, oppure le frecce ← → della tastiera per scorrere</div>
+  </div>
+</div>
+
+<script>
+  // ---------- DATI DI ESEMPIO (10 slot) ----------
+  // Sostituisci con i dati reali letti da localStorage / dal tuo sistema di salvataggio
+  const saves = [
+    { slot: 1, name: "Fattoria di Nonno Gino", day: 47, season: "Estate", level: 24, icon: "🌾", empty: false },
+    { slot: 2, name: "Valle Verde", day: 12, season: "Primavera", level: 8, icon: "🐄", empty: false },
+    { slot: 3, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 4, name: "Aia del Sole", day: 103, season: "Autunno", level: 41, icon: "🚜", empty: false },
+    { slot: 5, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 6, name: "Podere Rosa", day: 5, season: "Inverno", level: 2, icon: "🐑", empty: false },
+    { slot: 7, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 8, name: "Tenuta Girasole", day: 78, season: "Estate", level: 33, icon: "🌻", empty: false },
+    { slot: 9, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 10, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 11, name: "Cascina Airone", day: 61, season: "Autunno", level: 19, icon: "🐓", empty: false },
+    { slot: 12, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 13, name: "Fattoria del Melo", day: 29, season: "Primavera", level: 11, icon: "🍎", empty: false },
+    { slot: 14, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 15, name: "Radura del Nord", day: 95, season: "Inverno", level: 38, icon: "🐐", empty: false },
+    { slot: 16, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 17, name: "Terra di Mezzo", day: 3, season: "Primavera", level: 1, icon: "🌱", empty: false },
+    { slot: 18, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+    { slot: 19, name: "Fienile Antico", day: 140, season: "Estate", level: 52, icon: "🐖", empty: false },
+    { slot: 20, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
+  ];
+
+  const track = document.getElementById('track');
+  const viewport = document.getElementById('viewport');
+  const dotsWrap = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
+
+  let currentIndex = 0;
+  let cardWidth = 0;
+  let gap = 18;
+  let visibleCount = 1;
+
+  function buildCards(){
+    track.innerHTML = '';
+    saves.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'save-card' + (s.empty ? ' empty' : '');
+
+      if (s.empty) {
+        card.innerHTML = `
+          <div class="save-thumb"></div>
+          <div class="farm-name">Slot ${s.slot} — Vuoto</div>
+        `;
+        card.addEventListener('click', () => {
+          window.location.href = 'nuova-partita.html?slot=' + s.slot;
+        });
+      } else {
+        card.innerHTML = `
+          <div class="save-thumb">${s.icon}</div>
+          <div class="slot-label">Slot ${s.slot}</div>
+          <div class="farm-name">${s.name}</div>
+          <div class="save-meta">
+            <span>📅 Giorno ${s.day}</span>
+            <span>${s.season}</span>
+            <span>⭐ Lv.${s.level}</span>
+          </div>
+          <div class="save-actions">
+            <button class="primary" data-role="load">Carica</button>
+            <button class="danger" data-role="delete">Elimina</button>
+          </div>
+        `;
+        card.querySelector('[data-role="load"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.location.href = 'gioco.html?slot=' + s.slot;
+        });
+        card.querySelector('[data-role="delete"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm(`Eliminare il salvataggio "${s.name}"?`)) {
+            s.empty = true;
+            s.name = ''; s.day = 0; s.season = ''; s.level = 0; s.icon = '';
+            buildCards();
+          }
+        });
+      }
+      track.appendChild(card);
+    });
+    buildDots();
+    measure();
+    goTo(Math.min(currentIndex, saves.length - 1));
+  }
+
+  function buildDots(){
+    dotsWrap.innerHTML = '';
+    saves.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === currentIndex ? ' active' : '');
+      d.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(d);
+    });
+  }
+
+  function measure(){
+    const firstCard = track.querySelector('.save-card');
+    if (!firstCard) return;
+    cardWidth = firstCard.getBoundingClientRect().width;
+    visibleCount = Math.max(1, Math.floor(viewport.clientWidth / (cardWidth + gap)));
+  }
+
+  function goTo(index){
+    currentIndex = Math.max(0, Math.min(index, saves.length - 1));
+    const offset = -(currentIndex * (cardWidth + gap));
+    track.style.transform = `translateX(${offset}px)`;
+
+    [...dotsWrap.children].forEach((d, i) => d.classList.toggle('active', i === currentIndex));
+    prevBtn.classList.toggle('disabled', currentIndex === 0);
+    nextBtn.classList.toggle('disabled', currentIndex >= saves.length - 1);
+  }
+
+  prevBtn.addEventListener('click', () => goTo(currentIndex - 1));
+  nextBtn.addEventListener('click', () => goTo(currentIndex + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') goTo(currentIndex - 1);
+    if (e.key === 'ArrowRight') goTo(currentIndex + 1);
+    if (e.key === 'Escape') backBtn.click();
+  });
+
+  backBtn.addEventListener('click', () => {
+    window.location.href = 'farm-life-simulator-menu.html';
+  });
+
+  // ---- Drag / swipe con il mouse o dito ----
+  let isDown = false, startX = 0, startOffset = 0;
+  viewport.addEventListener('pointerdown', (e) => {
+    isDown = true;
+    startX = e.clientX;
+    startOffset = -(currentIndex * (cardWidth + gap));
+    track.style.transition = 'none';
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!isDown) return;
+    const dx = e.clientX - startX;
+    track.style.transform = `translateX(${startOffset + dx}px)`;
+  });
+  window.addEventListener('pointerup', (e) => {
+    if (!isDown) return;
+    isDown = false;
+    track.style.transition = '';
+    const dx = e.clientX - startX;
+    if (dx < -40) goTo(currentIndex + 1);
+    else if (dx > 40) goTo(currentIndex - 1);
+    else goTo(currentIndex);
+  });
+
+  window.addEventListener('resize', () => { measure(); goTo(currentIndex); });
+
+  buildCards();
+</script>
+
+</body>
+</html>

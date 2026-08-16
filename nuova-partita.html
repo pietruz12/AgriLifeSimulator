@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Life Simulator — Nuova Partita</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:wght@600;700;900&display=swap');
+
+  :root{
+    --cream:#f2ecd8;
+    --gold:#d9b46a;
+    --leaf:#7fae2e;
+    --panel:rgba(18,20,14,0.55);
+    --panel-strong:rgba(14,16,10,0.72);
+    --panel-border:rgba(255,255,255,0.12);
+    --text:#f5efe0;
+    --text-dim:#cfc7ad;
+    --bg-deep:#14170f;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    width:100%; height:100%;
+    font-family:'Nunito', sans-serif;
+    overflow:hidden;
+    background:var(--bg-deep);
+  }
+
+  .stage{
+    display:flex; flex-direction:column;
+    width:100%; height:100vh; min-height:560px;
+  }
+
+  /* ---------- HERO (foto mappa selezionata, resto dell'altezza) ---------- */
+  .hero{
+    position:relative;
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+    border-bottom:1px solid var(--panel-border);
+  }
+
+  .hero-scene{
+    position:absolute; inset:0;
+    opacity:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:opacity .5s ease;
+  }
+  .hero-scene.active{ opacity:1; }
+  .hero-scene .scene-icon{
+    font-size:min(14vw, 130px);
+    filter:drop-shadow(0 10px 26px rgba(0,0,0,0.4));
+    opacity:0.85;
+  }
+
+  .hero-shade{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.15) 70%, rgba(10,12,8,0.92) 100%);
+    pointer-events:none;
+  }
+
+  .back-btn{
+    position:absolute; top:16px; left:18px;
+    display:flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:50%;
+    background:var(--panel-strong);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-size:17px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    z-index:5;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .back-btn:hover{ transform:translateX(-3px); background:rgba(0,0,0,0.6); }
+
+  .hero-caption{
+    position:absolute; left:0; right:0; bottom:0;
+    text-align:center;
+    padding:0 20px 14px;
+    color:var(--text);
+    z-index:4;
+  }
+  .hero-caption .eyebrow{
+    font-size:10px; letter-spacing:4px; color:var(--gold);
+    font-weight:800; text-transform:uppercase; margin-bottom:4px;
+  }
+  .hero-caption .name{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:clamp(20px, 3vw, 30px);
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .hero-caption .tag{
+    font-size:12px; color:var(--text-dim); letter-spacing:0.5px; margin-top:3px;
+  }
+
+  /* ---------- LOWER (selezione mappa a pallini, ~30% dell'altezza) ---------- */
+  .lower{
+    flex:0 0 32%;
+    min-height:220px;
+    display:flex; flex-direction:column;
+    padding:22px 24px 0;
+  }
+
+  .panel-subtitle{
+    text-align:center;
+    font-size:13px; letter-spacing:3px; color:var(--text-dim);
+    font-weight:700; text-transform:uppercase;
+    margin-bottom:14px;
+  }
+
+  /* ---- dettagli della mappa selezionata (nome + statistiche) ---- */
+  .map-details{
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .map-details-name{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:clamp(20px, 2.6vw, 26px);
+    color:var(--leaf);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:14px;
+    transition:opacity .2s ease;
+  }
+  .map-stats-row{
+    display:flex; justify-content:center; flex-wrap:wrap;
+    gap:12px;
+  }
+  .stat-pill{
+    display:flex; align-items:center; gap:7px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:999px;
+    padding:9px 20px;
+    font-size:14.5px;
+    color:var(--text-dim);
+    backdrop-filter:blur(6px);
+  }
+  .stat-pill b{ color:var(--cream); font-weight:800; }
+
+  /* ---- pallini di selezione mappa ---- */
+  .carousel-wrap{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:0;
+  }
+
+  .dots-select{
+    display:flex; align-items:center; justify-content:center;
+    gap:22px;
+    flex-wrap:wrap;
+    max-width:100%;
+  }
+
+  .map-dot{
+    position:relative;
+    width:15px; height:15px; border-radius:50%;
+    background:rgba(255,255,255,0.28);
+    cursor:pointer;
+    transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .map-dot:hover{ background:rgba(255,255,255,0.55); transform:scale(1.2); }
+  .map-dot.active{
+    background:var(--leaf);
+    width:20px; height:20px;
+    box-shadow:0 0 0 6px rgba(127,174,46,0.22), 0 0 16px rgba(127,174,46,0.55);
+  }
+
+  .map-dot .dot-tip{
+    position:absolute; bottom:calc(100% + 10px); left:50%;
+    transform:translateX(-50%) translateY(4px);
+    white-space:nowrap;
+    background:var(--panel-strong);
+    border:1px solid var(--panel-border);
+    color:var(--cream);
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.3px;
+    padding:5px 10px;
+    border-radius:7px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .map-dot:hover .dot-tip{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- BARRA INFERIORE ---------- */
+  .bottom-bar{
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    padding:14px 0 18px;
+  }
+
+  .bar-btn{
+    display:flex; align-items:center; gap:8px;
+    padding:11px 22px;
+    border-radius:9px;
+    border:1px solid var(--panel-border);
+    background:rgba(255,255,255,0.05);
+    color:var(--text);
+    font-family:'Nunito', sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.5px; text-transform:uppercase;
+    cursor:pointer;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .bar-btn:hover{ background:rgba(255,255,255,0.12); transform:translateY(-1px); }
+
+  .bar-btn.continue{
+    background:linear-gradient(180deg, #8fc23a, var(--leaf));
+    color:#16260a;
+    border-color:rgba(255,255,255,0.25);
+    box-shadow:0 6px 16px rgba(127,174,46,0.35);
+  }
+  .bar-btn.continue:hover{ filter:brightness(1.06); }
+
+  .toast{
+    position:fixed; left:50%; bottom:86px;
+    transform:translateX(-50%) translateY(16px);
+    background:var(--panel-strong);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    padding:10px 18px; border-radius:999px;
+    font-size:13px; font-weight:700;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:30;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:720px){
+    .lower{ min-height:200px; padding-top:16px; }
+    .dots-select{ gap:14px; }
+    .stat-pill{ font-size:12.5px; padding:7px 14px; }
+    .map-details-name{ font-size:17px; }
+    .bar-btn span.txt{ display:inline; }
+    .bar-btn{ padding:10px 16px; font-size:11.5px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- ---------- FOTO/SCENA DELLA MAPPA SELEZIONATA ---------- -->
+  <div class="hero" id="hero">
+    <button class="back-btn" id="backBtn" title="Torna al menu">←</button>
+    <!-- le "hero-scene" vengono generate via JS -->
+    <div class="hero-shade"></div>
+    <div class="hero-caption" id="heroCaption">
+      <div class="eyebrow">Farm Life Simulator</div>
+      <div class="name" id="heroName"></div>
+      <div class="tag" id="heroTag"></div>
+    </div>
+  </div>
+
+  <!-- ---------- SELEZIONE MAPPE A PALLINI ---------- -->
+  <div class="lower">
+    <div class="panel-subtitle">Scegli il tuo terreno</div>
+
+    <div class="map-details">
+      <div class="map-details-name" id="detailsName"></div>
+      <div class="map-stats-row" id="detailsStats"></div>
+    </div>
+
+    <div class="carousel-wrap">
+      <div class="dots-select" id="dotsSelect"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="bar-btn" id="infoBtn">ⓘ <span class="txt">Info Mappa</span></button>
+      <button class="bar-btn continue" id="continueBtn"><span class="txt">Continua</span> ›</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ---------- DATI MAPPE ----------
+  // Ogni mappa ha un gradiente + un'icona al posto di una foto reale: sostituisci
+  // `gradient`/`icon` con `background-image:url('...')` su .hero-scene / .chip-thumb
+  // se vuoi usare foto vere.
+  const maps = [
+    {
+      id: "riverbend",
+      name: "Riverbend Springs",
+      size: "4x", farms: 37, fields: 62,
+      icon: "🌊",
+      gradient: "linear-gradient(135deg, #2a6f8f, #16324a)",
+      tag: "Fiume sinuoso tra colline verdi"
+    },
+    {
+      id: "golden-fields",
+      name: "Golden Fields",
+      size: "2x", farms: 25, fields: 40,
+      icon: "🌾",
+      gradient: "linear-gradient(135deg, #d9a83f, #8a5d1f)",
+      tag: "Distese dorate di grano"
+    },
+    {
+      id: "pinewood-valley",
+      name: "Pinewood Valley",
+      size: "4x", farms: 30, fields: 55,
+      icon: "🌲",
+      gradient: "linear-gradient(135deg, #3f6b4a, #1c3324)",
+      tag: "Valle boscosa tra le montagne"
+    },
+    {
+      id: "flatland-county",
+      name: "Flatland County",
+      size: "2x", farms: 20, fields: 35,
+      icon: "🚜",
+      gradient: "linear-gradient(135deg, #6b8f3f, #3f5a24)",
+      tag: "Pianure agricole a perdita d'occhio"
+    },
+    {
+      id: "sunset-acres",
+      name: "Sunset Acres",
+      size: "4x", farms: 28, fields: 50,
+      icon: "🌅",
+      gradient: "linear-gradient(135deg, #c9622f, #6f2f4f)",
+      tag: "Colline al tramonto in stile toscano"
+    },
+    {
+      id: "silver-creek",
+      name: "Silver Creek",
+      size: "3x", farms: 32, fields: 48,
+      icon: "🐟",
+      gradient: "linear-gradient(135deg, #3f8f8a, #1c3f3d)",
+      tag: "Ruscelli d'argento e prati umidi"
+    },
+    {
+      id: "autumn-ridge",
+      name: "Autumn Ridge",
+      size: "3x", farms: 26, fields: 44,
+      icon: "🍂",
+      gradient: "linear-gradient(135deg, #b0682e, #5c3419)",
+      tag: "Crinali infuocati dai colori d'autunno"
+    }
+  ];
+
+  const hero = document.getElementById('hero');
+  const heroName = document.getElementById('heroName');
+  const heroTag = document.getElementById('heroTag');
+  const dotsSelect = document.getElementById('dotsSelect');
+  const detailsName = document.getElementById('detailsName');
+  const detailsStats = document.getElementById('detailsStats');
+  const backBtn = document.getElementById('backBtn');
+  const infoBtn = document.getElementById('infoBtn');
+  const continueBtn = document.getElementById('continueBtn');
+  const toast = document.getElementById('toast');
+  let toastTimer;
+
+  let selected = 0;
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+
+  function buildHeroScenes(){
+    [...hero.querySelectorAll('.hero-scene')].forEach(el => el.remove());
+    maps.forEach((m, i) => {
+      const scene = document.createElement('div');
+      scene.className = 'hero-scene' + (i === selected ? ' active' : '');
+      scene.dataset.index = i;
+      scene.style.background = m.gradient;
+      scene.innerHTML = `<div class="scene-icon">${m.icon}</div>`;
+      hero.insertBefore(scene, backBtn.nextSibling);
+    });
+    updateHeroCaption();
+  }
+
+  function updateHeroCaption(){
+    const m = maps[selected];
+    heroName.textContent = m.name;
+    heroTag.textContent = m.tag;
+  }
+
+  function updateDetails(){
+    const m = maps[selected];
+    detailsName.textContent = m.name;
+    detailsStats.innerHTML = `
+      <div class="stat-pill">Dimensione <b>${m.size}</b></div>
+      <div class="stat-pill">Fattorie <b>${m.farms}</b></div>
+      <div class="stat-pill">Campi <b>${m.fields}</b></div>
+    `;
+  }
+
+  function buildDots(){
+    dotsSelect.innerHTML = '';
+    maps.forEach((m, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'map-dot' + (i === selected ? ' active' : '');
+      dot.innerHTML = `<span class="dot-tip">${m.name}</span>`;
+      dot.addEventListener('click', () => select(i));
+      dotsSelect.appendChild(dot);
+    });
+  }
+
+  function select(i){
+    selected = i;
+    [...dotsSelect.children].forEach((el, idx) => el.classList.toggle('active', idx === i));
+    [...hero.querySelectorAll('.hero-scene')].forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.index) === i);
+    });
+    updateHeroCaption();
+    updateDetails();
+  }
+  
+  backBtn.addEventListener('click', () => {
+    window.location.href = 'farm-life-simulator-menu.html';
+  });
+
+  infoBtn.addEventListener('click', () => {
+    const m = maps[selected];
+    showToast(`${m.name}: ${m.tag}`);
+  });
+
+continueBtn.addEventListener('click', () => {
+  const m = maps[selected];
+  window.location.href = 'impostazioni-partita.html?mappa=' + encodeURIComponent(m.id);
+});
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') select(Math.max(0, selected - 1));
+    if (e.key === 'ArrowRight') select(Math.min(maps.length - 1, selected + 1));
+    if (e.key === 'Escape') backBtn.click();
+    if (e.key === 'Enter') continueBtn.click();
+  });
+
+  buildHeroScenes();
+  buildDots();
+  updateDetails();
+</script>
+
+</body>
+</html>
