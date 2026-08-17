@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farm Life Simulator — Carica Partita</title>
+<title>Agri Life Simulator — Carica Partita</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:wght@600;700;900&display=swap');
 
@@ -249,7 +249,7 @@
     <div class="header">
       <button class="back-btn" id="backBtn" title="Torna al menu">←</button>
       <div class="title-block">
-        <div class="eyebrow">Farm Life Simulator</div>
+        <div class="eyebrow">Agri Life Simulator</div>
         <h1>Carica Partita</h1>
       </div>
     </div>
@@ -271,25 +271,25 @@
   // ---------- DATI DI ESEMPIO (10 slot) ----------
   // Sostituisci con i dati reali letti da localStorage / dal tuo sistema di salvataggio
   const saves = [
-    { slot: 1, name: "Fattoria di Nonno Gino", day: 47, season: "Estate", level: 24, icon: "🌾", empty: false },
-    { slot: 2, name: "Valle Verde", day: 12, season: "Primavera", level: 8, icon: "🐄", empty: false },
+    { slot: 1, name: "Fattoria di Nonno Gino", day: 47, season: "Estate", level: 24, icon: "🌾", mappa: "golden-fields", empty: false },
+    { slot: 2, name: "Valle Verde", day: 12, season: "Primavera", level: 8, icon: "🐄", mappa: "flatland-county", empty: false },
     { slot: 3, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 4, name: "Aia del Sole", day: 103, season: "Autunno", level: 41, icon: "🚜", empty: false },
+    { slot: 4, name: "Aia del Sole", day: 103, season: "Autunno", level: 41, icon: "🚜", mappa: "autumn-ridge", empty: false },
     { slot: 5, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 6, name: "Podere Rosa", day: 5, season: "Inverno", level: 2, icon: "🐑", empty: false },
+    { slot: 6, name: "Podere Rosa", day: 5, season: "Inverno", level: 2, icon: "🐑", mappa: "pinewood-valley", empty: false },
     { slot: 7, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 8, name: "Tenuta Girasole", day: 78, season: "Estate", level: 33, icon: "🌻", empty: false },
+    { slot: 8, name: "Tenuta Girasole", day: 78, season: "Estate", level: 33, icon: "🌻", mappa: "sunset-acres", empty: false },
     { slot: 9, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
     { slot: 10, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 11, name: "Cascina Airone", day: 61, season: "Autunno", level: 19, icon: "🐓", empty: false },
+    { slot: 11, name: "Cascina Airone", day: 61, season: "Autunno", level: 19, icon: "🐓", mappa: "riverbend", empty: false },
     { slot: 12, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 13, name: "Fattoria del Melo", day: 29, season: "Primavera", level: 11, icon: "🍎", empty: false },
+    { slot: 13, name: "Fattoria del Melo", day: 29, season: "Primavera", level: 11, icon: "🍎", mappa: "silver-creek", empty: false },
     { slot: 14, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 15, name: "Radura del Nord", day: 95, season: "Inverno", level: 38, icon: "🐐", empty: false },
+    { slot: 15, name: "Radura del Nord", day: 95, season: "Inverno", level: 38, icon: "🐐", mappa: "pinewood-valley", empty: false },
     { slot: 16, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 17, name: "Terra di Mezzo", day: 3, season: "Primavera", level: 1, icon: "🌱", empty: false },
+    { slot: 17, name: "Terra di Mezzo", day: 3, season: "Primavera", level: 1, icon: "🌱", mappa: "flatland-county", empty: false },
     { slot: 18, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
-    { slot: 19, name: "Fienile Antico", day: 140, season: "Estate", level: 52, icon: "🐖", empty: false },
+    { slot: 19, name: "Fienile Antico", day: 140, season: "Estate", level: 52, icon: "🐖", mappa: "golden-fields", empty: false },
     { slot: 20, name: "", day: 0, season: "", level: 0, icon: "", empty: true },
   ];
 
@@ -336,7 +336,8 @@
         `;
         card.querySelector('[data-role="load"]').addEventListener('click', (e) => {
           e.stopPropagation();
-          window.location.href = 'gioco.html?slot=' + s.slot;
+          const qs = new URLSearchParams({ slot: s.slot, mappa: s.mappa || '', nomeFattoria: s.name || '' });
+          window.location.href = 'caricamento.html?' + qs.toString();
         });
         card.querySelector('[data-role="delete"]').addEventListener('click', (e) => {
           e.stopPropagation();
@@ -391,7 +392,7 @@
   });
 
   backBtn.addEventListener('click', () => {
-    window.location.href = 'farm-life-simulator-menu.html';
+    window.location.href = 'agri-life-simulator-menu.html';
   });
 
   // ---- Drag / swipe con il mouse o dito ----

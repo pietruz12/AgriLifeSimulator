@@ -1,14 +1,14 @@
 @echo off
 REM ============================================================
-REM  build.bat — Compila Farm Life Simulator per Windows
+REM  build.bat — Compila Agri Life Simulator per Windows
 REM  Richiede: MSYS2 + MinGW-ucrt64 installato
 REM ============================================================
 
-title Compilazione Farm Life Simulator
+title Compilazione Agri Life Simulator
 
 echo.
 echo  ====================================================
-echo   Farm Life Simulator - Build Script
+echo   Agri Life Simulator - Build Script
 echo  ====================================================
 echo.
 
@@ -33,7 +33,7 @@ if %errorlevel% neq 0 (
 
 echo [1/2] Compilazione in corso...
 g++.exe main.cpp ^
-    -o FarmLifeSimulator.exe ^
+    -o AgriLifeSimulator.exe ^
     -mwindows ^
     -municode ^
     -lshell32 ^
@@ -53,7 +53,7 @@ if %errorlevel% neq 0 (
 
 echo [2/2] Compilazione completata!
 echo.
-echo  File creato: FarmLifeSimulator.exe
-echo  Fai doppio clic su FarmLifeSimulator.exe per avviare il gioco a schermo intero.
+echo  File creato: AgriLifeSimulator.exe
+echo  Fai doppio clic su AgriLifeSimulator.exe per avviare il gioco a schermo intero.
 echo.
 pause

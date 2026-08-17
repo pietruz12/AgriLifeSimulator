@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farm Life Simulator — Nuova Partita</title>
+<title>Agri Life Simulator — Nuova Partita</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:wght@600;700;900&display=swap');
 
@@ -257,7 +257,7 @@
     <!-- le "hero-scene" vengono generate via JS -->
     <div class="hero-shade"></div>
     <div class="hero-caption" id="heroCaption">
-      <div class="eyebrow">Farm Life Simulator</div>
+      <div class="eyebrow">Agri Life Simulator</div>
       <div class="name" id="heroName"></div>
       <div class="tag" id="heroTag"></div>
     </div>
@@ -419,9 +419,9 @@
     updateHeroCaption();
     updateDetails();
   }
-  
+
   backBtn.addEventListener('click', () => {
-    window.location.href = 'farm-life-simulator-menu.html';
+    window.location.href = 'agri-life-simulator-menu.html';
   });
 
   infoBtn.addEventListener('click', () => {
@@ -429,10 +429,10 @@
     showToast(`${m.name}: ${m.tag}`);
   });
 
-continueBtn.addEventListener('click', () => {
-  const m = maps[selected];
-  window.location.href = 'impostazioni-partita.html?mappa=' + encodeURIComponent(m.id);
-});
+  continueBtn.addEventListener('click', () => {
+    const m = maps[selected];
+    window.location.href = 'impostazioni-partita.html?mappa=' + encodeURIComponent(m.id);
+  });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') select(Math.max(0, selected - 1));

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agri Life Simulator — Caricamento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:wght@600;700;900&display=swap');
+
+  :root{
+    --cream:#f2ecd8;
+    --gold:#d9b46a;
+    --leaf:#7fae2e;
+    --panel:rgba(18,20,14,0.55);
+    --panel-strong:rgba(14,16,10,0.72);
+    --panel-border:rgba(255,255,255,0.12);
+    --text:#f5efe0;
+    --text-dim:#cfc7ad;
+    --bg-deep:#12150e;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    width:100%; height:100%;
+    font-family:'Nunito', sans-serif;
+    overflow:hidden;
+    background:var(--bg-deep);
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    height:100vh;
+    min-height:520px;
+    overflow:hidden;
+  }
+
+  /* ---------- SFONDO (una foto diversa per ogni mappa) ---------- */
+  .bg-photo{
+    position:absolute; inset:0;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    animation: kenburns 16s ease-out forwards;
+  }
+  @keyframes kenburns{
+    0%  { transform:scale(1); }
+    100%{ transform:scale(1.06); }
+  }
+
+  .vignette{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.5) 100%);
+    pointer-events:none;
+  }
+
+  /* ---------- BARRA INFERIORE ---------- */
+  .loading-bar{
+    position:absolute; left:0; right:0; bottom:0;
+    background:var(--panel-strong);
+    border-top:1px solid var(--panel-border);
+    backdrop-filter:blur(10px);
+    padding:22px 32px 0;
+    z-index:5;
+  }
+
+  .loading-content{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:24px;
+    padding-bottom:18px;
+  }
+
+  .welcome-block{ max-width:640px; min-width:0; }
+  .welcome-title{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:clamp(20px, 2.6vw, 28px);
+    color:var(--cream);
+    margin-bottom:6px;
+  }
+  .welcome-title .accent{ color:var(--leaf); }
+
+  .tip-text{
+    font-size:14px;
+    font-weight:600;
+    color:var(--text-dim);
+    min-height:20px;
+    transition:opacity .25s ease;
+  }
+  .tip-text.fade-out{ opacity:0; }
+
+  .progress-block{
+    display:flex; align-items:center; gap:16px;
+    flex-shrink:0;
+  }
+  .loading-label{
+    font-size:12px; font-weight:800; letter-spacing:2px;
+    color:var(--leaf); text-transform:uppercase;
+    white-space:nowrap;
+    animation: pulseLabel 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseLabel{
+    0%, 100%{ opacity:0.7; }
+    50%     { opacity:1; }
+  }
+
+  .progress-ring{
+    position:relative;
+    width:72px; height:72px;
+    flex-shrink:0;
+  }
+  .progress-ring svg{ width:100%; height:100%; display:block; }
+  .ring-track{ fill:none; stroke:rgba(255,255,255,0.15); stroke-width:6; }
+  .ring-fill{ fill:none; stroke:var(--leaf); stroke-width:6; stroke-linecap:round; }
+  .ring-percent{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Nunito', sans-serif;
+    font-weight:800; font-size:15px;
+    color:var(--cream);
+  }
+
+  /* ---- pulsante "Inizia", visibile solo a caricamento completato ---- */
+  .start-btn{
+    display:none;
+    align-items:center; gap:9px;
+    padding:14px 26px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:linear-gradient(180deg, #8fc23a, var(--leaf));
+    color:#16260a;
+    font-family:'Nunito', sans-serif;
+    font-weight:800; font-size:14px;
+    letter-spacing:0.5px; text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(127,174,46,0.4);
+    flex-shrink:0;
+    transition:transform .12s ease, filter .12s ease;
+  }
+  .start-btn.show{
+    display:flex;
+    animation: popIn .3s ease forwards;
+  }
+  @keyframes popIn{
+    from{ opacity:0; }
+    to  { opacity:1; }
+  }
+  .start-btn:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+  .start-btn:active{ transform:translateY(0) scale(0.97); }
+  .start-btn:focus{ outline:2px solid rgba(255,255,255,0.6); outline-offset:2px; }
+  .start-btn .key-hint{
+    font-size:10.5px; font-weight:700; letter-spacing:0.3px;
+    color:rgba(20,38,10,0.65);
+    text-transform:none;
+    background:rgba(255,255,255,0.35);
+    padding:3px 8px; border-radius:6px;
+  }
+
+  .progress-bar-outer{
+    width:100%; height:7px;
+    background:rgba(255,255,255,0.12);
+    overflow:hidden;
+  }
+  .progress-bar-inner{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, #8fc23a, var(--leaf));
+    box-shadow:0 0 10px rgba(127,174,46,0.6);
+  }
+
+  @media (max-width:720px){
+    .loading-bar{ padding:16px 18px 0; }
+    .loading-content{ flex-direction:column; align-items:flex-start; gap:14px; }
+    .progress-block{ align-self:flex-end; }
+    .welcome-title{ font-size:19px; }
+    .progress-ring{ width:56px; height:56px; }
+    .ring-percent{ font-size:12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="bg-photo" id="bgPhoto"></div>
+  <div class="vignette"></div>
+
+  <div class="loading-bar">
+    <div class="loading-content">
+      <div class="welcome-block">
+        <div class="welcome-title">Benvenuto in <span class="accent">Agri Life</span>!</div>
+        <div class="tip-text" id="tipText"></div>
+      </div>
+
+      <div class="progress-block">
+        <span class="loading-label">Caricamento in corso...</span>
+        <div class="progress-ring">
+          <svg viewBox="0 0 80 80">
+            <circle class="ring-track" cx="40" cy="40" r="34"></circle>
+            <circle class="ring-fill" id="ringFill" cx="40" cy="40" r="34" transform="rotate(-90 40 40)"></circle>
+          </svg>
+          <div class="ring-percent" id="ringPercent">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progressBarInner"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- SFONDO PER OGNI MAPPA ----------
+  // Ogni mappa ha una propria immagine da affiancare in questa cartella, con lo
+  // stesso nome usato qui sotto. Se l'immagine non è ancora presente, viene
+  // mostrato comunque il gradiente di riserva (stessi colori di nuova-partita.html).
+  const mapBackgrounds = {
+    "riverbend":       { file: "caricamento-riverbend.png",       gradient: "linear-gradient(135deg, #2a6f8f, #16324a)" },
+    "golden-fields":    { file: "caricamento-golden-fields.jpg",   gradient: "linear-gradient(135deg, #d9a83f, #8a5d1f)" },
+    "pinewood-valley":  { file: "caricamento-pinewood-valley.jpg", gradient: "linear-gradient(135deg, #3f6b4a, #1c3324)" },
+    "flatland-county":  { file: "caricamento-flatland-county.jpg", gradient: "linear-gradient(135deg, #6b8f3f, #3f5a24)" },
+    "sunset-acres":     { file: "caricamento-sunset-acres.jpg",    gradient: "linear-gradient(135deg, #c9622f, #6f2f4f)" },
+    "silver-creek":     { file: "caricamento-silver-creek.jpg",    gradient: "linear-gradient(135deg, #3f8f8a, #1c3f3d)" },
+    "autumn-ridge":     { file: "caricamento-autumn-ridge.jpg",    gradient: "linear-gradient(135deg, #b0682e, #5c3419)" }
+  };
+
+  const params = new URLSearchParams(window.location.search);
+  const mappaId = params.get('mappa') || 'riverbend';
+  const bg = mapBackgrounds[mappaId] || mapBackgrounds['riverbend'];
+
+  document.getElementById('bgPhoto').style.backgroundImage = `url('${bg.file}'), ${bg.gradient}`;
+
+  // ---------- MESSAGGIO INIZIALE: nuova partita oppure salvataggio esistente ----------
+  const isNuovaPartita = params.get('nuovaPartita') === '1';
+  const welcomeMessage = isNuovaPartita ? "Una nuova avventura inizia" : "L'avventura continua";
+
+  // ---------- CONSIGLI CHE SCORRONO DURANTE IL CARICAMENTO (ordine casuale) ----------
+  const tips = [
+    // Campi e raccolti
+    "Cura bene i tuoi campi.",
+    "Ogni raccolto inizia dalla semina.",
+    "Controlla sempre il meteo.",
+    "Una macchina ben mantenuta lavora meglio.",
+    "Pianifica il lavoro prima di iniziare.",
+    "Non lasciare i campi a riposo troppo a lungo.",
+    "Un buon raccolto richiede pazienza.",
+    "Scegli l'attrezzatura giusta per ogni lavoro.",
+    // Vita di campagna
+    "La campagna non dorme mai.",
+    "Ogni stagione porta nuove sfide.",
+    "La tua fattoria, le tue regole.",
+    "Dalla terra nasce il tuo futuro.",
+    "Ogni giornata è una nuova opportunità.",
+    "Costruisci la fattoria dei tuoi sogni.",
+    "Il lavoro duro dà i suoi frutti.",
+    "Dove c'è terra, c'è vita.",
+    // Animali
+    "Gli animali hanno bisogno di cure ogni giorno.",
+    "Mantieni pulite le stalle.",
+    "Un animale felice è un animale produttivo.",
+    "Il fieno è fondamentale per l'allevamento.",
+    "Anche i piccoli lavori fanno la differenza.",
+    // Economia
+    "Investi con attenzione.",
+    "Risparmia per le grandi occasioni.",
+    "Controlla i prezzi prima di vendere.",
+    "Ogni investimento può cambiare il tuo futuro.",
+    // Simpatiche
+    "Il trattore non si guida da solo. Per ora.",
+    "Se il campo è storto, dai la colpa al terreno.",
+    "Prima il lavoro, poi il caffè.",
+    "Un trattore pulito è un trattore felice.",
+    "Hai controllato il carburante?",
+    "Non parcheggiare il trattore in mezzo alla strada. 😅",
+    "Se senti un rumore strano... probabilmente è normale."
+  ];
+
+  // Mescola l'array (Fisher-Yates) cosi da poter pescare i consigli senza ripeterli
+  // subito, invece di un Math.random() puro che potrebbe ripetere la stessa frase due volte di fila.
+  function shuffle(array){
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  let tipQueue = [];
+  let lastTip = null;
+  function nextTip(){
+    if (tipQueue.length === 0) tipQueue = shuffle(tips);
+    let tip = tipQueue.pop();
+    if (tip === lastTip && tipQueue.length > 0){
+      const alt = tipQueue.pop();
+      tipQueue.push(tip);
+      tip = alt;
+    }
+    lastTip = tip;
+    return tip;
+  }
+
+  const tipTextEl = document.getElementById('tipText');
+  tipTextEl.textContent = welcomeMessage;
+
+  const WELCOME_DURATION = 3000; // ms — tempo di lettura del messaggio iniziale
+  const TIP_DURATION     = 3500; // ms — tempo di lettura di ogni consiglio
+
+  function setTipText(newText){
+    tipTextEl.classList.add('fade-out');
+    setTimeout(() => {
+      tipTextEl.textContent = newText;
+      tipTextEl.classList.remove('fade-out');
+    }, 250);
+  }
+
+  function startTipRotation(){
+    setTipText(nextTip());
+    setInterval(() => setTipText(nextTip()), TIP_DURATION);
+  }
+  setTimeout(startTipRotation, WELCOME_DURATION);
+
+  // ---------- ANELLO E BARRA DI CARICAMENTO (simulato) ----------
+  // Nessun asset reale viene ancora caricato: la percentuale è una simulazione
+  // temporizzata, pensata per dare il tempo di leggere il messaggio e i consigli.
+  const TOTAL_DURATION = 13500; // ms — durata totale (= benvenuto + 3 consigli)
+
+  const ringFill = document.getElementById('ringFill');
+  const ringPercentEl = document.getElementById('ringPercent');
+  const progressBarInner = document.getElementById('progressBarInner');
+
+  const RADIUS = 34;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  ringFill.style.strokeDasharray = CIRCUMFERENCE;
+  ringFill.style.strokeDashoffset = CIRCUMFERENCE;
+
+  function updateProgress(percent){
+    ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - percent / 100);
+    ringPercentEl.textContent = Math.round(percent) + '%';
+    progressBarInner.style.width = percent + '%';
+  }
+
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+  function goToGame(){
+    // Inoltra tutti i parametri ricevuti (mappa, nome fattoria, impostazioni, slot...)
+    window.location.href = 'gioco.html' + window.location.search;
+  }
+
+  function animateLoading(){
+    const start = performance.now();
+    function tick(now){
+      const t = Math.min((now - start) / TOTAL_DURATION, 1);
+      updateProgress(easeOutCubic(t) * 100);
+      if (t < 1){
+        requestAnimationFrame(tick);
+      } else {
+        updateProgress(100);
+        setTimeout(goToGame, 500);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  animateLoading();
+</script>
+
+</body>
+</html>
